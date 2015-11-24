@@ -2,16 +2,15 @@ Name:           mumble
 Version:        1.2.10
 Release:        1%{?dist}
 Summary:        Voice chat suite aimed at gamers
-Group:          Applications/Internet
 License:        BSD
 URL:            http://www.mumble.info
-Source0:        https://github.com/mumble-voip/mumble/archive/1.2.10.tar.gz
+Source0:        https://github.com/mumble-voip/mumble/archive/%{version}.tar.gz#/%{name}-%{version}.tar.gz 
 Source1:        murmur.service
 Source2:        %{name}.desktop
 Patch1:         %{name}-1.2.4-celt_include_dir.patch
 Patch2:         %{name}-fixspeechd.patch
 
-BuildRequires:  qt-devel, boost-devel
+BuildRequires:  qt4-devel, boost-devel
 #BuildRequires:  ice-devel
 BuildRequires:    alsa-lib-devel
 BuildRequires:    pulseaudio-libs-devel, speex-devel
@@ -22,7 +21,8 @@ BuildRequires:    libXevie-devel, celt071-devel
 BuildRequires:    protobuf-compiler, avahi-compat-libdns_sd-devel
 BuildRequires:    libsndfile-devel, protobuf-devel
 BuildRequires:    opus-devel
-Requires:    celt071, speex, opus
+#Due to naming issues, celt071 is required explicitly
+Requires: celt071
 
 # Due to missing ice on ppc64
 ExcludeArch: ppc64
@@ -37,7 +37,6 @@ won't be audible to other players.
 
 %package -n murmur
 Summary:    Mumble voice chat server
-Group:        System Environment/Daemons
 Provides:    %{name}-server = %{version}-%{release}
 
 Requires(pre): shadow-utils
@@ -52,7 +51,6 @@ primarily aimed at gamers. Murmur is the server component of the suite.
 
 %package plugins
 Summary:    Plugins for VoIP program Mumble
-Group:        Development/Libraries
 Requires:    %{name} = %{version}-%{release}
 
 %description plugins
@@ -62,24 +60,11 @@ players will come from the direction of their characters.
 
 %package overlay
 Summary:    Start games with the mumble overlay
-Group:        Applications/Internet
 Requires:    %{name} = %{version}-%{release}
 
 %description overlay
 Mumble-overlay is part of the Mumble VoIP suite aimed at gamers. If supported,
 starting your game with this script will enable an ingame Mumble overlay.
-
-%package protocol
-Summary:    Support for the mumble protocol
-Group:        Applications/Internet
-Requires:    %{name} = %{version}-%{release}    
-Requires:    kde-filesystem
-
-%description protocol
-Mumble is a Low-latency, high-quality voice communication suite
-for gamers. It includes game linking, so voice from other players
-comes from the direction of their characters, and echo cancellation
-so that the sound from your loudspeakers won't be audible to other players.
 
 %pre -n murmur
 getent group mumble-server >/dev/null || groupadd -r mumble-server
@@ -94,16 +79,13 @@ exit 0
 %patch2 -p1 -F 2
 
 %build
-%{_qt4_qmake} "CONFIG+=no-bundled-speex no-g15 \
+%{qmake_qt4} "CONFIG+=no-bundled-speex no-g15 \
 no-embed-qt-translations no-update \
 no-bundled-celt no-bundled-opus packaged \
 no-ice" \
-QMAKE_CFLAGS_RELEASE="%{optflags}" \
-QMAKE_CXXFLAGS_RELEASE="%{optflags}" \
 DEFINES+="PLUGIN_PATH=%{_libdir}/%{name}" \
 DEFINES+="DEFAULT_SOUNDSYSTEM=PulseAudio" main.pro
-make release
-#%{?_smp_mflags}
+make release %{?_smp_mflags}
 
 %install
 install -pD -m0755 release/%{name} %{buildroot}%{_bindir}/%{name}
@@ -146,9 +128,6 @@ install -pD -m0644 icons/%{name}.svg %{buildroot}%{_datadir}/icons/hicolor/scala
 # install desktop file
 desktop-file-install --dir=%{buildroot}%{_datadir}/applications \
 %{SOURCE2}
-
-# install the mumble protocol
-install -pD -m0644 scripts/%{name}.protocol %{buildroot}%{_datadir}/kde4/services/%{name}.protocol
 
 # murmur.conf
 install -pD -m0644 scripts/murmur.conf %{buildroot}%{_sysconfdir}/dbus-1/system.d/murmur.conf
@@ -208,9 +187,6 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null ||:
 %{_bindir}/%{name}-overlay
 %{_libdir}/%{name}/lib%{name}*
 %{_mandir}/man1/mumble-overlay.1*
-
-%files protocol
-%{_datadir}/kde4/services/mumble.protocol
 
 %changelog
 * Tue Nov 24 2015 John Popplewell <johnhatestrash@gmail.com> - 1.2.10-1
