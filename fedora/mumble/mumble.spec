@@ -1,6 +1,6 @@
 Name:           mumble
 Version:        1.2.10
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        Voice chat suite aimed at gamers
 Obsoletes:      mumble-protocol < 1.2.10-2
 License:        BSD
@@ -8,9 +8,10 @@ URL:            http://www.mumble.info
 Source0:        https://github.com/mumble-voip/mumble/archive/%{version}.tar.gz#/%{name}-%{version}.tar.gz 
 Source1:        murmur.service
 Source2:        %{name}.desktop
-Source3:        murmur.ini
 Patch1:         %{name}-1.2.4-celt_include_dir.patch
 Patch2:         %{name}-fixspeechd.patch
+# See https://fedoraproject.org/wiki/Packaging:CryptoPolicies
+Patch3:         %{name}-FedoraCryptoPolicyCipherList.patch
 
 BuildRequires:  qt4-devel, boost-devel
 #BuildRequires:  ice-devel
@@ -74,6 +75,7 @@ exit 0
 %setup -q
 %patch1 -p1
 %patch2 -p1 -F 2
+%patch3 -p1
 
 %build
 %{qmake_qt4} "CONFIG+=no-bundled-speex no-g15 \
@@ -105,7 +107,7 @@ ln -s libmumble.so.%{version} %{buildroot}%{_libdir}/%{name}/libmumble.so.1.2
 ln -s ../libcelt071.so.0.0.0 %{buildroot}%{_libdir}/%{name}/libcelt.so.0.7.0
 
 mkdir -p %{buildroot}%{_sysconfdir}/murmur/
-install -pD %{SOURCE2} %{buildroot}%{_sysconfdir}/murmur/murmur.ini
+install -pD scripts/murmur.ini %{buildroot}%{_sysconfdir}/murmur/murmur.ini
 ln -s /etc/murmur/murmur.ini %{buildroot}%{_sysconfdir}/%{name}-server.ini
 install -pD -m0644 %{SOURCE1} %{buildroot}%{_unitdir}/murmur.service
 
@@ -188,10 +190,13 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null ||:
 %{_mandir}/man1/mumble-overlay.1*
 
 %changelog
+* Wed Nov 25 2015 John Popplewell <johnhatestrash@gmail.com> - 1.2.10-4
+- Hardened murmur.service
+
 * Wed Nov 25 2015 John Popplewell <johnhatestrash@gmail.com> - 1.2.10-3
 - Added ppc support
 - Marked LICENSE with license tag
-- Added modified murmur.ini with PROFILE=SYSTEM sslCipher= setting
+- Added patch to modify murmur.ini with PROFILE=SYSTEM sslCipher= setting
 
 * Tue Nov 24 2015 John Popplewell <johnhatestrash@gmail.com> - 1.2.10-2
 - Removed protocol subpkg, added Obsoletes mumble-protocol < 1.2.10-2
