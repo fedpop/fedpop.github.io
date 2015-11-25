@@ -188,7 +188,7 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null ||:
 %{_mandir}/man1/mumble-overlay.1*
 
 %changelog
-* Wed Nov 25 2015 John Popplewell <johnhatestrash@gail.com> - 1.2.10-3
+* Wed Nov 25 2015 John Popplewell <johnhatestrash@gmail.com> - 1.2.10-3
 - Added ppc support
 - Marked LICENSE with license tag
 - Added modified murmur.ini with PROFILE=SYSTEM sslCipher= setting
