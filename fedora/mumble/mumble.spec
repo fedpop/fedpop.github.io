@@ -1,31 +1,30 @@
 Name:           mumble
 Version:        1.2.10
-Release:        1%{?dist}
+Release:        3%{?dist}
 Summary:        Voice chat suite aimed at gamers
+Obsoletes:      mumble-protocol < 1.2.10-2
 License:        BSD
 URL:            http://www.mumble.info
 Source0:        https://github.com/mumble-voip/mumble/archive/%{version}.tar.gz#/%{name}-%{version}.tar.gz 
 Source1:        murmur.service
 Source2:        %{name}.desktop
+Source3:        murmur.ini
 Patch1:         %{name}-1.2.4-celt_include_dir.patch
 Patch2:         %{name}-fixspeechd.patch
 
 BuildRequires:  qt4-devel, boost-devel
 #BuildRequires:  ice-devel
-BuildRequires:    alsa-lib-devel
-BuildRequires:    pulseaudio-libs-devel, speex-devel
-BuildRequires:    speech-dispatcher-devel, libogg-devel
-BuildRequires:    libcap-devel, speexdsp-devel
-BuildRequires:    desktop-file-utils, openssl-devel
-BuildRequires:    libXevie-devel, celt071-devel
-BuildRequires:    protobuf-compiler, avahi-compat-libdns_sd-devel
-BuildRequires:    libsndfile-devel, protobuf-devel
-BuildRequires:    opus-devel
+BuildRequires:  alsa-lib-devel
+BuildRequires:  pulseaudio-libs-devel, speex-devel
+BuildRequires:  speech-dispatcher-devel, libogg-devel
+BuildRequires:  libcap-devel, speexdsp-devel
+BuildRequires:  desktop-file-utils, openssl-devel
+BuildRequires:  libXevie-devel, celt071-devel
+BuildRequires:  protobuf-compiler, avahi-compat-libdns_sd-devel
+BuildRequires:  libsndfile-devel, protobuf-devel
+BuildRequires:  opus-devel
 #Due to naming issues, celt071 is required explicitly
-Requires: celt071
-
-# Due to missing ice on ppc64
-ExcludeArch: ppc64
+Requires:       celt071
 
 %description
 Mumble provides low-latency, high-quality voice communication for gamers. 
@@ -34,11 +33,9 @@ from the direction of their characters, and has echo
 cancellation so that the sound from your loudspeakers
 won't be audible to other players.
 
-
 %package -n murmur
 Summary:    Mumble voice chat server
 Provides:    %{name}-server = %{version}-%{release}
-
 Requires(pre): shadow-utils
 Requires(post): systemd
 Requires(preun): systemd
@@ -108,7 +105,7 @@ ln -s libmumble.so.%{version} %{buildroot}%{_libdir}/%{name}/libmumble.so.1.2
 ln -s ../libcelt071.so.0.0.0 %{buildroot}%{_libdir}/%{name}/libcelt.so.0.7.0
 
 mkdir -p %{buildroot}%{_sysconfdir}/murmur/
-install -pD scripts/murmur.ini %{buildroot}%{_sysconfdir}/murmur/murmur.ini
+install -pD %{SOURCE2} %{buildroot}%{_sysconfdir}/murmur/murmur.ini
 ln -s /etc/murmur/murmur.ini %{buildroot}%{_sysconfdir}/%{name}-server.ini
 install -pD -m0644 %{SOURCE1} %{buildroot}%{_unitdir}/murmur.service
 
@@ -157,7 +154,8 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null ||:
 %systemd_postun_with_restart murmur.service
 
 %files
-%doc README README.Linux LICENSE CHANGES
+%license LICENSE
+%doc README README.Linux CHANGES
 %doc scripts/weblist*
 %{_bindir}/%{name}
 %{_mandir}/man1/%{name}.1*
@@ -168,7 +166,8 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null ||:
 %{_libdir}/%{name}/libcelt.so.0.7.0
 
 %files -n murmur
-%doc README README.Linux LICENSE CHANGES
+%license LICENSE
+%doc README README.Linux CHANGES
 %doc scripts/murmur.pl scripts/murmur-user-wrapper
 %attr(-,mumble-server,mumble-server) %{_sbindir}/murmurd
 %{_unitdir}/murmur.service
@@ -189,6 +188,15 @@ gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null ||:
 %{_mandir}/man1/mumble-overlay.1*
 
 %changelog
+* Wed Nov 25 2015 John Popplewell <johnhatestrash@gail.com> - 1.2.10-3
+- Added ppc support
+- Marked LICENSE with license tag
+- Added modified murmur.ini with PROFILE=SYSTEM sslCipher= setting
+
+* Tue Nov 24 2015 John Popplewell <johnhatestrash@gmail.com> - 1.2.10-2
+- Removed protocol subpkg, added Obsoletes mumble-protocol < 1.2.10-2
+- Made recommended review changes (qmake_qt4, added parallel make, qt4-devel in favor of qt-devel)
+
 * Tue Nov 24 2015 John Popplewell <johnhatestrash@gmail.com> - 1.2.10-1
 - Update to 1.2.10
 - Drop ice
